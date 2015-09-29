@@ -1490,6 +1490,7 @@ int scpiParser_detectProgramMessageUnit(scpi_parser_state_t * state, char * buff
     return lex_state.pos - lex_state.buffer;
 }
 
+
 /**
  * Check current command
  *  - suitable for one handle to multiple commands
@@ -1497,7 +1498,6 @@ int scpiParser_detectProgramMessageUnit(scpi_parser_state_t * state, char * buff
  * @param cmd
  * @return
  */
-
 scpi_bool_t SCPI_IsCmd(scpi_t * context, const char * cmd) {
     const char * pattern;
 
