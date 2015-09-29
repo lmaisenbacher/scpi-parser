@@ -34,8 +34,10 @@
  *
  */
 
-#include <ctype.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <elf.h>
+#include <stdio.h>
 
 #include "scpi/config.h"
 #include "scpi/parser.h"
@@ -96,10 +98,46 @@ static size_t writeNewLine(scpi_t * context) {
         len = writeData(context, SCPI_LINE_ENDING, strlen(SCPI_LINE_ENDING));
         flushData(context);
         return len;
-    } else {
-        return 0;
+    } else if (context->output_binary_count > 0) {
+        flushData(context);
     }
+    return 0;
 }
+
+/**
+ * Writes header for binary data
+ * @param context
+ * @param numElems - number of items in the array
+ * @param sizeOfElem - size of each item [sizeof(float), sizeof(int), ...]
+ * @return number of characters written
+ */
+size_t writeBinHeader(scpi_t * context, uint32_t numElems, size_t sizeOfElem) {
+
+    size_t result = 0;
+    char numBytes[9+1];
+    char numOfNumBytes[2];
+
+    // Calculate number of bytes needed for all elements
+    size_t numDataBytes = numElems * sizeOfElem;
+
+    // Do not allow more than 9 character long size
+    if (numDataBytes > 999999999){
+        return result;
+    }
+
+    // Convert to string and calculate string length
+    size_t len = SCPI_UInt32ToStrBase(numDataBytes, numBytes, sizeof(numBytes), 10);
+
+    // Convert len to sting
+    SCPI_UInt32ToStrBase(len, numOfNumBytes, sizeof(numOfNumBytes), 10);
+
+    result += writeData(context, "#", 1);
+    result += writeData(context, numOfNumBytes, 1);
+    result += writeData(context, numBytes, len);
+
+    return result;
+}
+
 
 /**
  * Conditionaly write ";"
@@ -128,6 +166,7 @@ static scpi_bool_t processCommand(scpi_t * context) {
 
     context->cmd_error = FALSE;
     context->output_count = 0;
+    context->output_binary_count = 0;
     context->input_count = 0;
 
     /* if callback exists - call command callback */
@@ -484,6 +523,107 @@ size_t SCPI_ResultText(scpi_t * context, const char * data) {
     context->output_count++;
     return result;
 }
+
+size_t resultBufferInt16Bin(scpi_t * context, const int16_t *data, uint32_t size) {
+    size_t result = 0;
+
+    result += writeBinHeader(context, size, sizeof(float));
+
+    if (result == 0) {
+        return result;
+    }
+
+    uint32_t i;
+    for (i = 0; i < size; i++) {
+        int16_t value = htons(data[i]);
+        result += writeData(context, (char*)(&value), sizeof(int16_t));
+    }
+    context->output_binary_count++;
+    return result;
+}
+
+size_t resultBufferInt16Ascii(scpi_t * context, const int16_t *data, uint32_t size) {
+    size_t result = 0;
+    result += writeDelimiter(context);
+    result += writeData(context, "{", 1);
+
+    uint32_t i;
+    size_t len;
+    char buffer[12];
+    for (i = 0; i < size-1; i++) {
+        len = SCPI_UInt32ToStrBase(data[i], buffer, sizeof (buffer), 10);
+        result += writeData(context, buffer, len);
+        result += writeData(context, ",", 1);
+    }
+    len = SCPI_UInt32ToStrBase(data[i], buffer, sizeof (buffer), 10);
+    result += writeData(context, buffer, len);
+    result += writeData(context, "}", 1);
+    context->output_count++;
+    return result;
+}
+
+
+size_t SCPI_ResultBufferInt16(scpi_t * context, const int16_t *data, uint32_t size) {
+
+    if (context->binary_output == true) {
+        return resultBufferInt16Bin(context, data, size);
+    }
+    else {
+        return resultBufferInt16Ascii(context, data, size);
+    }
+}
+
+size_t resultBufferFloatBin(scpi_t * context, const float *data, uint32_t size) {
+    size_t result = 0;
+
+    result += writeBinHeader(context, size, sizeof(float));
+
+    if (result == 0) {
+        return result;
+    }
+
+    uint32_t i;
+    for (i = 0; i < size; i++) {
+        float value = hton_f(data[i]);
+        result += writeData(context, (char*)(&value), sizeof(float));
+    }
+    context->output_binary_count++;
+    return result;
+}
+
+
+size_t resultBufferFloatAscii(scpi_t * context, const float *data, uint32_t size) {
+    size_t result = 0;
+    result += writeDelimiter(context);
+    result += writeData(context, "{", 1);
+
+    uint32_t i;
+    size_t len;
+    char buffer[50];
+    for (i = 0; i < size-1; i++) {
+        len = SCPI_DoubleToStr(data[i], buffer, sizeof (buffer));
+        result += writeData(context, buffer, len);
+        result += writeData(context, ",", 1);
+    }
+    len = SCPI_DoubleToStr(data[i], buffer, sizeof (buffer));
+    result += writeData(context, buffer, len);
+    result += writeData(context, "}", 1);
+    context->output_count++;
+    return result;
+}
+
+size_t SCPI_ResultBufferFloat(scpi_t * context, const float *data, uint32_t size) {
+
+    if (context->binary_output == true) {
+        return resultBufferFloatBin(context, data, size);
+    }
+    else {
+        return resultBufferFloatAscii(context, data, size);
+    }
+}
+
+
+/* parsing parameters */
 
 /**
  * Write arbitrary block program data to the result
@@ -1192,6 +1332,24 @@ scpi_bool_t SCPI_ParamChoice(scpi_t * context, const scpi_choice_def_t * options
 }
 
 /**
+ * Red Pitaya added function
+ * TODO, replace with upstream equivalent
+ */
+scpi_bool_t SCPI_ParamBufferFloat(scpi_t * context, float *data, uint32_t *size, scpi_bool_t mandatory) {
+    *size = 0;
+    double value;
+    while (true) {
+        if (!SCPI_ParamDouble(context, &value, mandatory)) {
+            break;
+        }
+        data[*size] = (float) value;
+        *size = *size + 1;
+        mandatory = false;          // only first is mandatory
+    }
+    return true;
+}
+
+/**
  * Parse one parameter and detect type
  * @param state
  * @param token
@@ -1339,6 +1497,7 @@ int scpiParser_detectProgramMessageUnit(scpi_parser_state_t * state, char * buff
  * @param cmd
  * @return
  */
+
 scpi_bool_t SCPI_IsCmd(scpi_t * context, const char * cmd) {
     const char * pattern;
 

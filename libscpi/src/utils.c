@@ -49,6 +49,20 @@ static size_t patternSeparatorPos(const char * pattern, size_t len);
 static size_t cmdSeparatorPos(const char * cmd, size_t len);
 
 /**
+ * Converts the float from host byte order to network byte order.
+ * @param value
+ * @return
+ */
+float hton_f(float value) {
+    union {float f; unsigned int  i;}val;
+
+    val.f = value;
+
+    val.i = htonl(val.i);
+    return val.f;
+};
+
+/**
  * Find the first occurrence in str of a character in set.
  * @param str
  * @param size

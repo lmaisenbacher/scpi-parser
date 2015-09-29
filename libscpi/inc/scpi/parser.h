@@ -59,6 +59,9 @@ extern "C" {
     size_t SCPI_ResultText(scpi_t * context, const char * data);
     size_t SCPI_ResultArbitraryBlock(scpi_t * context, const char * data, size_t len);
     size_t SCPI_ResultBool(scpi_t * context, scpi_bool_t val);
+    // TODO, this functions are not upstreamed
+    size_t SCPI_ResultBufferInt16(scpi_t * context, const int16_t *data, uint32_t size);
+    size_t SCPI_ResultBufferFloat(scpi_t * context, const float *data, uint32_t size);
 
     scpi_bool_t SCPI_Parameter(scpi_t * context, scpi_parameter_t * parameter, scpi_bool_t mandatory);
     scpi_bool_t SCPI_ParamIsValid(scpi_parameter_t * parameter);
@@ -85,6 +88,7 @@ extern "C" {
 
     scpi_bool_t SCPI_ParamBool(scpi_t * context, scpi_bool_t * value, scpi_bool_t mandatory);
     scpi_bool_t SCPI_ParamChoice(scpi_t * context, const scpi_choice_def_t * options, int32_t * value, scpi_bool_t mandatory);
+    scpi_bool_t SCPI_ParamBufferFloat(scpi_t * context, float *data, uint32_t *size, scpi_bool_t mandatory);
 
     scpi_bool_t SCPI_IsCmd(scpi_t * context, const char * cmd);
 #if USE_COMMAND_TAGS
