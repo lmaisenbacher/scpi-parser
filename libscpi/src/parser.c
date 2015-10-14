@@ -527,7 +527,7 @@ size_t SCPI_ResultText(scpi_t * context, const char * data) {
 size_t resultBufferInt16Bin(scpi_t * context, const int16_t *data, uint32_t size) {
     size_t result = 0;
 
-    result += writeBinHeader(context, size, sizeof(float));
+    result += writeBinHeader(context, size, sizeof(int16_t));
 
     if (result == 0) {
         return result;
