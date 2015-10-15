@@ -111,7 +111,7 @@ static size_t writeNewLine(scpi_t * context) {
  * @param sizeOfElem - size of each item [sizeof(float), sizeof(int), ...]
  * @return number of characters written
  */
-size_t writeBinHeader(scpi_t * context, uint32_t numElems, size_t sizeOfElem) {
+static size_t writeBinHeader(scpi_t * context, uint32_t numElems, size_t sizeOfElem) {
 
     size_t result = 0;
     char numBytes[9+1];
@@ -524,7 +524,7 @@ size_t SCPI_ResultText(scpi_t * context, const char * data) {
     return result;
 }
 
-size_t resultBufferInt16Bin(scpi_t * context, const int16_t *data, uint32_t size) {
+static size_t resultBufferInt16Bin(scpi_t * context, const int16_t *data, uint32_t size) {
     size_t result = 0;
 
     result += writeBinHeader(context, size, sizeof(int16_t));
@@ -542,7 +542,7 @@ size_t resultBufferInt16Bin(scpi_t * context, const int16_t *data, uint32_t size
     return result;
 }
 
-size_t resultBufferInt16Ascii(scpi_t * context, const int16_t *data, uint32_t size) {
+static size_t resultBufferInt16Ascii(scpi_t * context, const int16_t *data, uint32_t size) {
     size_t result = 0;
     result += writeDelimiter(context);
     result += writeData(context, "{", 1);
@@ -573,7 +573,7 @@ size_t SCPI_ResultBufferInt16(scpi_t * context, const int16_t *data, uint32_t si
     }
 }
 
-size_t resultBufferFloatBin(scpi_t * context, const float *data, uint32_t size) {
+static size_t resultBufferFloatBin(scpi_t * context, const float *data, uint32_t size) {
     size_t result = 0;
 
     result += writeBinHeader(context, size, sizeof(float));
@@ -592,7 +592,7 @@ size_t resultBufferFloatBin(scpi_t * context, const float *data, uint32_t size) 
 }
 
 
-size_t resultBufferFloatAscii(scpi_t * context, const float *data, uint32_t size) {
+static size_t resultBufferFloatAscii(scpi_t * context, const float *data, uint32_t size) {
     size_t result = 0;
     result += writeDelimiter(context);
     result += writeData(context, "{", 1);
