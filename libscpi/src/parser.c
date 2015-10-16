@@ -524,7 +524,7 @@ size_t SCPI_ResultText(scpi_t * context, const char * data) {
     return result;
 }
 
-static size_t resultBufferInt16Bin(scpi_t * context, const int16_t *data, uint32_t size) {
+static size_t resultBufferInt16Bin(scpi_t * context, const int16_t *data, size_t size) {
     size_t result = 0;
 
     result += writeBinHeader(context, size, sizeof(int16_t));
@@ -533,37 +533,39 @@ static size_t resultBufferInt16Bin(scpi_t * context, const int16_t *data, uint32
         return result;
     }
 
-    uint32_t i;
+    size_t i;
     for (i = 0; i < size; i++) {
-        int16_t value = htons(data[i]);
+        uint16_t value = htons((uint16_t) data[i]);
         result += writeData(context, (char*)(&value), sizeof(int16_t));
     }
     context->output_binary_count++;
     return result;
 }
 
-static size_t resultBufferInt16Ascii(scpi_t * context, const int16_t *data, uint32_t size) {
+#include <inttypes.h>
+static size_t resultBufferInt16Ascii(scpi_t * context, const int16_t *data, size_t size) {
     size_t result = 0;
     result += writeDelimiter(context);
     result += writeData(context, "{", 1);
 
-    uint32_t i;
+    size_t i;
     size_t len;
     char buffer[12];
-    for (i = 0; i < size-1; i++) {
-        len = SCPI_UInt32ToStrBase(data[i], buffer, sizeof (buffer), 10);
+    for (i = 0; i < size; i++) {
+        snprintf(buffer, sizeof (buffer), "%"PRIi16, data[i]);
+        len = strlen(buffer);
+        // TODO: there were casting issues with the following code
+        //len = SCPI_Int32ToStr((int32_t) data[i], buffer, sizeof (buffer));
         result += writeData(context, buffer, len);
-        result += writeData(context, ",", 1);
+        if (i < size-1)
+            result += writeData(context, ",", 1);
     }
-    len = SCPI_UInt32ToStrBase(data[i], buffer, sizeof (buffer), 10);
-    result += writeData(context, buffer, len);
     result += writeData(context, "}", 1);
     context->output_count++;
     return result;
 }
 
-
-size_t SCPI_ResultBufferInt16(scpi_t * context, const int16_t *data, uint32_t size) {
+size_t SCPI_ResultBufferInt16(scpi_t * context, const int16_t *data, size_t size) {
 
     if (context->binary_output == true) {
         return resultBufferInt16Bin(context, data, size);
@@ -573,7 +575,7 @@ size_t SCPI_ResultBufferInt16(scpi_t * context, const int16_t *data, uint32_t si
     }
 }
 
-static size_t resultBufferFloatBin(scpi_t * context, const float *data, uint32_t size) {
+static size_t resultBufferFloatBin(scpi_t * context, const float *data, size_t size) {
     size_t result = 0;
 
     result += writeBinHeader(context, size, sizeof(float));
@@ -582,7 +584,7 @@ static size_t resultBufferFloatBin(scpi_t * context, const float *data, uint32_t
         return result;
     }
 
-    uint32_t i;
+    size_t i;
     for (i = 0; i < size; i++) {
         float value = hton_f(data[i]);
         result += writeData(context, (char*)(&value), sizeof(float));
@@ -591,22 +593,20 @@ static size_t resultBufferFloatBin(scpi_t * context, const float *data, uint32_t
     return result;
 }
 
-
-static size_t resultBufferFloatAscii(scpi_t * context, const float *data, uint32_t size) {
+static size_t resultBufferFloatAscii(scpi_t * context, const float *data, size_t size) {
     size_t result = 0;
     result += writeDelimiter(context);
     result += writeData(context, "{", 1);
 
-    uint32_t i;
+    size_t i;
     size_t len;
     char buffer[50];
-    for (i = 0; i < size-1; i++) {
+    for (i = 0; i < size; i++) {
         len = SCPI_DoubleToStr(data[i], buffer, sizeof (buffer));
         result += writeData(context, buffer, len);
-        result += writeData(context, ",", 1);
+        if (i < size-1)
+            result += writeData(context, ",", 1);
     }
-    len = SCPI_DoubleToStr(data[i], buffer, sizeof (buffer));
-    result += writeData(context, buffer, len);
     result += writeData(context, "}", 1);
     context->output_count++;
     return result;
