@@ -213,7 +213,9 @@ extern "C" {
         SCPI_UNIT_HERTZ,
         SCPI_UNIT_CELSIUS,
         SCPI_UNIT_SECONDS,
-        SCPI_UNIT_DISTANCE
+        SCPI_UNIT_DISTANCE,
+        SCPI_UNIT_ANGLE,
+        SCPI_UNIT_RATIO
     };
     typedef enum _scpi_unit_t scpi_unit_t;
 

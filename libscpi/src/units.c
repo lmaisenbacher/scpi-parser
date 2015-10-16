@@ -35,6 +35,7 @@
  */
 
 #include <string.h>
+#include <math.h>
 #include "scpi/parser.h"
 #include "scpi/units.h"
 #include "utils_private.h"
@@ -87,7 +88,9 @@ const scpi_unit_def_t scpi_units_def[] = {
     {/* name */ "GHZ", /* unit */ SCPI_UNIT_HERTZ, /* mult */ 1e9},
 
     /* temperature */
-    {/* name */ "CEL", /* unit */ SCPI_UNIT_CELSIUS, /* mult */ 1},
+    {/* name */ "CEL", /* unit */ SCPI_UNIT_CELSIUS, /* mult */ 1},  // Celsius
+//  {/* name */ "FAR", /* unit */ SCPI_UNIT_CELSIUS, /* mult */ ?},  // Fahrenheit
+//  {/* name */ "K", /* unit */ SCPI_UNIT_CELSIUS, /* mult */ ?},    // Kelvin
 
     /* time */
     {/* name */ "PS", /* unit */ SCPI_UNIT_SECONDS, /* mult */ 1e-12},
@@ -97,6 +100,19 @@ const scpi_unit_def_t scpi_units_def[] = {
     {/* name */ "S", /* unit */ SCPI_UNIT_SECONDS, /* mult */ 1},
     {/* name */ "MIN", /* unit */ SCPI_UNIT_SECONDS, /* mult */ 60},
     {/* name */ "HR", /* unit */ SCPI_UNIT_SECONDS, /* mult */ 3600},
+
+    /* angle */
+    {/* name */ "RAD", /* unit */ SCPI_UNIT_ANGLE, /* mult */ 1},                 // Radian
+    {/* name */ "REV", /* unit */ SCPI_UNIT_ANGLE, /* mult */ 2*M_PI},            // Revolution
+    {/* name */ "DEG", /* unit */ SCPI_UNIT_ANGLE, /* mult */ 2*M_PI/360},        // Degree
+    {/* name */ "MIN", /* unit */ SCPI_UNIT_ANGLE, /* mult */ 2*M_PI/360/60},     // Minute
+    {/* name */ "SEC", /* unit */ SCPI_UNIT_ANGLE, /* mult */ 2*M_PI/360/60/60},  // Second
+//  {/* name */ "GON", /* unit */ SCPI_UNIT_ANGLE, /* mult */ ?},                 // Grade
+
+    /* ratio */
+    {/* name */ "",    /* unit */ SCPI_UNIT_RATIO, /* mult */ 1},      // Unitless
+    {/* name */ "PCT", /* unit */ SCPI_UNIT_RATIO, /* mult */ 1/100},  // Percent
+    {/* name */ "PPM", /* unit */ SCPI_UNIT_RATIO, /* mult */ 1e-6},   // Parts per million
 
     SCPI_UNITS_LIST_END,
 };
