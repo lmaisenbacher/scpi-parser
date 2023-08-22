@@ -89,7 +89,7 @@ extern "C" {
     scpi_bool_t SCPI_ParamBool(scpi_t * context, scpi_bool_t * value, scpi_bool_t mandatory);
     scpi_bool_t SCPI_ParamChoice(scpi_t * context, const scpi_choice_def_t * options, int32_t * value, scpi_bool_t mandatory);
     scpi_bool_t SCPI_ParamBufferFloat(scpi_t * context, float *data, uint32_t *size, scpi_bool_t mandatory);
-    scpi_bool_t SCPI_ParamBufferInt32(scpi_t * context, unit32_t *data, uint32_t *size, scpi_bool_t mandatory);
+    scpi_bool_t SCPI_ParamBufferInt32(scpi_t * context, int32_t *data, uint32_t *size, scpi_bool_t mandatory);
 
     scpi_bool_t SCPI_IsCmd(scpi_t * context, const char * cmd);
 #if USE_COMMAND_TAGS
