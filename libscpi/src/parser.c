@@ -1350,6 +1350,24 @@ scpi_bool_t SCPI_ParamBufferFloat(scpi_t * context, float *data, uint32_t *size,
 }
 
 /**
+ * Red Pitaya added function
+ * TODO, replace with upstream equivalent
+ */
+scpi_bool_t SCPI_ParamBufferInt32(scpi_t * context, int32_t *data, uint32_t *size, scpi_bool_t mandatory) {
+    *size = 0;
+    int32_t value;
+    while (true) {
+        if (!SCPI_ParamInt32(context, &value, mandatory)) {
+            break;
+        }
+        data[*size] = (int32_t) value;
+        *size = *size + 1;
+        mandatory = false;          // only first is mandatory
+    }
+    return true;
+}
+
+/**
  * Parse one parameter and detect type
  * @param state
  * @param token
